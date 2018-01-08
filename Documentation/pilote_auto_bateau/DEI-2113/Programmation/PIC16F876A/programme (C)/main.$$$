@@ -1,0 +1,557 @@
+ /**   A    1 :V17
+\file main.c  A    2 :
+\brief 		Fichier unique de la carte V-T°-P NMEA183 PIC16F87x  A    3 :
+  A    4 :
+\date 	  	Novembre 2004  A    5 :
+\version  	PIC16F873  A    6 :
+\version  	Carte marine V-T°-P NMEA183 PIC16F873  A    7 :
+\version    Compilateur C CCS  A    8 :
+\version 	1.0  A    9 :
+\author		David Provent, modifications et adaptation au PIC16F876 Vincent AUBINEAU,  Exxotest, Annecy, Haute-Savoie, FRANCE.  A   10 :
+\bug 		Pas de bogues connus pour le moment   A   11 :
+*/  A   12 :
+  A   13 :
+  A   14 :
+#case  A   15 :
+  A   16 :
+#include <16F876A.h> A   17 :
+ //////// Standard Header file for the PIC16F876A device ////////////////  B    1 :I1
+#device PIC16F876A  B    2 :
+#nolist  B    3N:X0
+//////// Program memory: 8192x14  Data RAM: 367  Stack: 8  B    4N:
+//////// I/O: 22   Analog Pins: 5  B    5N:
+//////// Data EEPROM: 256  B    6N:
+//////// C Scratch area: 77   ID Location: 2000  B    7N:
+//////// Fuses: LP,XT,HS,RC,NOWDT,WDT,NOPUT,PUT,PROTECT,DEBUG,NODEBUG  B    8N:
+//////// Fuses: NOPROTECT,NOBROWNOUT,BROWNOUT,LVP,NOLVP,CPD,NOCPD,WRT_50%  B    9N:
+//////// Fuses: NOWRT,WRT_25%,WRT_5%  B   10N:
+////////   B   11N:
+////////////////////////////////////////////////////////////////// I/O  B   12N:
+// Discrete I/O Functions: SET_TRIS_x(), OUTPUT_x(), INPUT_x(),  B   13N:
+//                         PORT_B_PULLUPS(), INPUT(),  B   14N:
+//                         OUTPUT_LOW(), OUTPUT_HIGH(),  B   15N:
+//                         OUTPUT_FLOAT(), OUTPUT_BIT()  B   16N:
+// Constants used to identify pins in the above are:  B   17N:
+  B   18N:
+#define PIN_A0  40  B   19N:
+#define PIN_A1  41  B   20N:
+#define PIN_A2  42  B   21N:
+#define PIN_A3  43  B   22N:
+#define PIN_A4  44  B   23N:
+#define PIN_A5  45  B   24N:
+  B   25N:
+#define PIN_B0  48  B   26N:
+#define PIN_B1  49  B   27N:
+#define PIN_B2  50  B   28N:
+#define PIN_B3  51  B   29N:
+#define PIN_B4  52  B   30N:
+#define PIN_B5  53  B   31N:
+#define PIN_B6  54  B   32N:
+#define PIN_B7  55  B   33N:
+  B   34N:
+#define PIN_C0  56  B   35N:
+#define PIN_C1  57  B   36N:
+#define PIN_C2  58  B   37N:
+#define PIN_C3  59  B   38N:
+#define PIN_C4  60  B   39N:
+#define PIN_C5  61  B   40N:
+#define PIN_C6  62  B   41N:
+#define PIN_C7  63  B   42N:
+  B   43N:
+////////////////////////////////////////////////////////////////// Useful defines  B   44N:
+#define FALSE 0  B   45N:
+#define TRUE 1  B   46N:
+  B   47N:
+#define BYTE int  B   48N:
+#define BOOLEAN short int  B   49N:
+  B   50N:
+#define getc getch  B   51N:
+#define fgetc getch  B   52N:
+#define getchar getch  B   53N:
+#define putc putchar  B   54N:
+#define fputc putchar  B   55N:
+#define fgets gets  B   56N:
+#define fputs puts  B   57N:
+  B   58N:
+////////////////////////////////////////////////////////////////// Control  B   59N:
+// Control Functions:  RESET_CPU(), SLEEP(), RESTART_CAUSE()  B   60N:
+// Constants returned from RESTART_CAUSE() are:  B   61N:
+#define WDT_FROM_SLEEP  0       B   62N:
+#define WDT_TIMEOUT     8       B   63N:
+#define MCLR_FROM_SLEEP 16      B   64N:
+#define NORMAL_POWER_UP 24      B   65N:
+  B   66N:
+  B   67N:
+////////////////////////////////////////////////////////////////// Timer 0  B   68N:
+// Timer 0 (AKA RTCC)Functions: SETUP_COUNTERS() or SETUP_TIMER0(),  B   69N:
+//                              SET_TIMER0() or SET_RTCC(),  B   70N:
+//                              GET_TIMER0() or GET_RTCC()  B   71N:
+// Constants used for SETUP_TIMER0() are:  B   72N:
+#define RTCC_INTERNAL   0  B   73N:
+#define RTCC_EXT_L_TO_H 32  B   74N:
+#define RTCC_EXT_H_TO_L 48  B   75N:
+  B   76N:
+#define RTCC_DIV_1      8  B   77N:
+#define RTCC_DIV_2      0  B   78N:
+#define RTCC_DIV_4      1  B   79N:
+#define RTCC_DIV_8      2  B   80N:
+#define RTCC_DIV_16     3  B   81N:
+#define RTCC_DIV_32     4  B   82N:
+#define RTCC_DIV_64     5  B   83N:
+#define RTCC_DIV_128    6  B   84N:
+#define RTCC_DIV_256    7  B   85N:
+  B   86N:
+  B   87N:
+#define RTCC_8_BIT      0       B   88N:
+  B   89N:
+// Constants used for SETUP_COUNTERS() are the above  B   90N:
+// constants for the 1st param and the following for  B   91N:
+// the 2nd param:  B   92N:
+  B   93N:
+////////////////////////////////////////////////////////////////// WDT  B   94N:
+// Watch Dog Timer Functions: SETUP_WDT() or SETUP_COUNTERS() (see above)  B   95N:
+//                            RESTART_WDT()  B   96N:
+//  B   97N:
+#define WDT_18MS        8     B   98N:
+#define WDT_36MS        9     B   99N:
+#define WDT_72MS       10     B  100N:
+#define WDT_144MS      11     B  101N:
+#define WDT_288MS      12     B  102N:
+#define WDT_576MS      13     B  103N:
+#define WDT_1152MS     14     B  104N:
+#define WDT_2304MS     15     B  105N:
+  B  106N:
+////////////////////////////////////////////////////////////////// Timer 1  B  107N:
+// Timer 1 Functions: SETUP_TIMER_1, GET_TIMER1, SET_TIMER1  B  108N:
+// Constants used for SETUP_TIMER_1() are:  B  109N:
+//      (or (via |) together constants from each group)  B  110N:
+#define T1_DISABLED         0  B  111N:
+#define T1_INTERNAL         0x85  B  112N:
+#define T1_EXTERNAL         0x87  B  113N:
+#define T1_EXTERNAL_SYNC    0x83  B  114N:
+  B  115N:
+#define T1_CLK_OUT          8  B  116N:
+  B  117N:
+#define T1_DIV_BY_1         0  B  118N:
+#define T1_DIV_BY_2         0x10  B  119N:
+#define T1_DIV_BY_4         0x20  B  120N:
+#define T1_DIV_BY_8         0x30  B  121N:
+  B  122N:
+////////////////////////////////////////////////////////////////// Timer 2  B  123N:
+// Timer 2 Functions: SETUP_TIMER_2, GET_TIMER2, SET_TIMER2  B  124N:
+// Constants used for SETUP_TIMER_2() are:  B  125N:
+#define T2_DISABLED         0  B  126N:
+#define T2_DIV_BY_1         4  B  127N:
+#define T2_DIV_BY_4         5  B  128N:
+#define T2_DIV_BY_16        6  B  129N:
+  B  130N:
+////////////////////////////////////////////////////////////////// CCP  B  131N:
+// CCP Functions: SETUP_CCPx, SET_PWMx_DUTY  B  132N:
+// CCP Variables: CCP_x, CCP_x_LOW, CCP_x_HIGH  B  133N:
+// Constants used for SETUP_CCPx() are:  B  134N:
+#define CCP_OFF                         0  B  135N:
+#define CCP_CAPTURE_FE                  4  B  136N:
+#define CCP_CAPTURE_RE                  5  B  137N:
+#define CCP_CAPTURE_DIV_4               6  B  138N:
+#define CCP_CAPTURE_DIV_16              7  B  139N:
+#define CCP_COMPARE_SET_ON_MATCH        8  B  140N:
+#define CCP_COMPARE_CLR_ON_MATCH        9  B  141N:
+#define CCP_COMPARE_INT                 0xA  B  142N:
+#define CCP_COMPARE_RESET_TIMER         0xB  B  143N:
+#define CCP_PWM                         0xC  B  144N:
+#define CCP_PWM_PLUS_1                  0x1c  B  145N:
+#define CCP_PWM_PLUS_2                  0x2c  B  146N:
+#define CCP_PWM_PLUS_3                  0x3c  B  147N:
+long CCP_1;  B  148N:V18
+#byte   CCP_1    =                      0x15          B  149N:
+#byte   CCP_1_LOW=                      0x15          B  150N:
+#byte   CCP_1_HIGH=                     0x16          B  151N:V19
+long CCP_2;  B  152N:V20V21
+#byte   CCP_2    =                      0x1B          B  153N:
+#byte   CCP_2_LOW=                      0x1B          B  154N:
+#byte   CCP_2_HIGH=                     0x1C          B  155N:V22
+////////////////////////////////////////////////////////////////// SPI  B  156N:
+// SPI Functions: SETUP_SPI, SPI_WRITE, SPI_READ, SPI_DATA_IN  B  157N:
+// Constants used in SETUP_SSP() are:  B  158N:
+#define SPI_MASTER       0x20  B  159N:
+#define SPI_SLAVE        0x24  B  160N:
+#define SPI_L_TO_H       0  B  161N:
+#define SPI_H_TO_L       0x10  B  162N:
+#define SPI_CLK_DIV_4    0  B  163N:
+#define SPI_CLK_DIV_16   1  B  164N:
+#define SPI_CLK_DIV_64   2  B  165N:
+#define SPI_CLK_T2       3  B  166N:
+#define SPI_SS_DISABLED  1  B  167N:
+  B  168N:
+#define SPI_SAMPLE_AT_END 0x8000  B  169N:
+#define SPI_XMIT_L_TO_H  0x4000  B  170N:
+  B  171N:
+////////////////////////////////////////////////////////////////// UART  B  172N:
+// Constants used in setup_uart() are:  B  173N:
+// FALSE - Turn UART off  B  174N:
+// TRUE  - Turn UART on  B  175N:
+#define UART_ADDRESS 2  B  176N:
+#define UART_DATA    4  B  177N:
+// TRUE  - Turn UART on  B  178N:
+////////////////////////////////////////////////////////////////// COMP  B  179N:
+// Comparator Variables: C1OUT, C2OUT  B  180N:
+// Constants used in setup_comparators() are:  B  181N:
+#define A0_A3_A1_A3  0xfff04  B  182N:
+#define A0_A3_A1_A2_OUT_ON_A4_A5  0xfcf03  B  183N:
+#define A0_A3_A1_A3_OUT_ON_A4_A5  0xbcf05  B  184N:
+#define NC_NC_NC_NC  0x0ff07  B  185N:
+#define A0_A3_A1_A2  0xfff02  B  186N:
+#define A0_A3_NC_NC_OUT_ON_A4  0x9ef01  B  187N:
+#define A0_VR_A1_VR 0x3ff06  B  188N:
+#define A3_VR_A2_VR 0xcff0e  B  189N:
+  B  190N:
+#bit C1OUT = 0x9c.6  B  191N:V23
+#bit C2OUT = 0x9c.7  B  192N:V24
+  B  193N:
+////////////////////////////////////////////////////////////////// VREF  B  194N:
+// Constants used in setup_vref() are:  B  195N:
+#define VREF_LOW  0xa0  B  196N:
+#define VREF_HIGH 0x80  B  197N:
+#define VREF_A2   0x40  B  198N:
+  B  199N:
+  B  200N:
+//////////////////////////////////////////////////////////////////   B  201N:
+  B  202N:
+// ADC Functions: SETUP_ADC(), SETUP_ADC_PORTS() (aka SETUP_PORT_A),  B  203N:
+//                SET_ADC_CHANNEL(), READ_ADC()  B  204N:
+// Constants used in SETUP_ADC_PORTS() are:  B  205N:
+#define NO_ANALOGS             0x86         // None  B  206N:
+#define ALL_ANALOG             0x80         // A0 A1 A2 A3 A5 E0 E1 E2 Ref=Vdd  B  207N:
+#define ANALOG_RA3_REF         0x81         // A0 A1 A2 A5 E0 E1 E2 Ref=A3  B  208N:
+#define A_ANALOG               0x82         // A0 A1 A2 A3 A5 Ref=Vdd  B  209N:
+#define A_ANALOG_RA3_REF       0x83         // A0 A1 A2 A5 Ref=A3  B  210N:
+#define RA0_RA1_RA3_ANALOG     0x84         // A0 A1 A3 Ref=Vdd  B  211N:
+#define RA0_RA1_ANALOG_RA3_REF 0x85         // A0 A1 Ref=A3  B  212N:
+#define ANALOG_RA3_RA2_REF              0x88   // A0 A1 A5 E0 E1 E2 Ref=A2,A3  B  213N:
+#define ANALOG_NOT_RE1_RE2              0x89   // A0 A1 A2 A3 A5 E0 Ref=Vdd  B  214N:
+#define ANALOG_NOT_RE1_RE2_REF_RA3      0x8A   // A0 A1 A2 A5 E0 Ref=A3  B  215N:
+#define ANALOG_NOT_RE1_RE2_REF_RA3_RA2  0x8B   // A0 A1 A5 E0 Ref=A2,A3  B  216N:
+#define A_ANALOG_RA3_RA2_REF            0x8C   // A0 A1 A5 Ref=A2,A3  B  217N:
+#define RA0_RA1_ANALOG_RA3_RA2_REF      0x8D   // A0 A1 Ref=A2,A3  B  218N:
+#define RA0_ANALOG                      0x8E   // A0  B  219N:
+#define RA0_ANALOG_RA3_RA2_REF          0x8F   // A0 Ref=A2,A3  B  220N:
+// Constants used for SETUP_ADC() are:  B  221N:
+#define ADC_OFF                0              // ADC Off  B  222N:
+#define ADC_CLOCK_DIV_2        1  B  223N:
+#define ADC_CLOCK_DIV_8     0x41  B  224N:
+#define ADC_CLOCK_DIV_32    0x81  B  225N:
+#define ADC_CLOCK_INTERNAL  0xc1              // Internal 2-6us  B  226N:
+  B  227N:
+// Constants used in READ_ADC() are:  B  228N:
+#define ADC_START_AND_READ     7   // This is the default if nothing is specified  B  229N:
+#define ADC_START_ONLY         1  B  230N:
+#define ADC_READ_ONLY          6  B  231N:
+  B  232N:
+////////////////////////////////////////////////////////////////// INT  B  233N:
+// Interrupt Functions: ENABLE_INTERRUPTS(), DISABLE_INTERRUPTS(),  B  234N:
+//                      EXT_INT_EDGE()  B  235N:
+//  B  236N:
+// Constants used in EXT_INT_EDGE() are:  B  237N:
+#define L_TO_H              0x40  B  238N:
+#define H_TO_L                 0  B  239N:
+// Constants used in ENABLE/DISABLE_INTERRUPTS() are:  B  240N:
+#define GLOBAL                    0x0BC0  B  241N:
+#define INT_RTCC                  0x0B20  B  242N:
+#define INT_RB                    0x0B08  B  243N:
+#define INT_EXT                   0x0B10  B  244N:
+#define INT_AD                    0x8C40  B  245N:
+#define INT_TBE                   0x8C10  B  246N:
+#define INT_RDA                   0x8C20  B  247N:
+#define INT_TIMER1                0x8C01  B  248N:
+#define INT_TIMER2                0x8C02  B  249N:
+#define INT_CCP1                  0x8C04  B  250N:
+#define INT_CCP2                  0x8D01  B  251N:
+#define INT_SSP                   0x8C08  B  252N:
+#define INT_BUSCOL                0x8D08  B  253N:
+#define INT_EEPROM                0x8D10  B  254N:
+#define INT_TIMER0                0x0B20  B  255N:
+#define INT_COMP                  0x8D40  B  256N:
+  B  257N:
+#list  B  258 :X1E
+ B  258 :
+#include "types.h" A   18 :
+   C    1 :I2
+#ifndef __TYPES_H__  C    2 :
+#define __TYPES_H__  C    3 :
+  C    4 :
+#undef VOID  C    5 :
+#undef BOOL  C    6 :
+#undef BYTE  C    7 :
+#undef WORD  C    8 :
+#undef DWORD  C    9 :
+#undef CHAR  C   10 :
+#undef SHORT  C   11 :
+#undef LONG  C   12 :
+#undef FLOAT  C   13 :
+  C   14 :
+#define VOID	void  C   15 :
+#define BOOL	int1  C   16 :
+  C   17 :
+#define BYTE	unsigned int8  C   18 :
+#define WORD	unsigned int16  C   19 :
+#define DWORD	unsigned int32  C   20 :
+  C   21 :
+#define CHAR	signed int8  C   22 :
+#define SHORT	signed int16  C   23 :
+#define LONG	signed int32  C   24 :
+  C   25 :
+#define FLOAT	float  C   26 :
+  C   27 :
+  C   28 :
+#endif // __TYPES_H__  C   29 :E
+ C   29 :
+  A   19 :
+#device ADC=10  A   20 :
+#fuses NOCPD, NOPROTECT, NODEBUG  A   21 :
+#fuses NOWDT, NOLVP, NOPUT, NOBROWNOUT  A   22 :
+#fuses HS  A   23 :
+#use delay(clock=16000000)  A   24 :V26V28
+#use fast_io(A)  A   25 :
+#use fast_io(B)  A   26 :
+#use fast_io(C)  A   27 :
+  A   28 :
+// I/O pins  A   29 :
+#define MES_TEMP	PIN_A0  ///< Entrée mesure de température (analogique)  A   30 :
+#define MES_ADC1    PIN_A1  ///< Entrée mesure ADC1 (analogique) du connecteur orange 2 voies  A   31 :
+#define MES_ADC2    PIN_A5  ///< Entrée mesure ADC2 (analogique) du connecteur orange 2 voies  A   32 :
+#define MES_SPEED	PIN_B0  ///< Mesure de la vitesse  A   33 :
+#define LED		    PIN_B5  ///< LED verte  A   34 :
+#define NMEA		PIN_C6  ///< TX NMEA183  A   35 :
+  A   36 :
+#define ADC_TEMP 0  ///< ADC entrée température du MUX  A   37 :
+#define ADC_1    1  ///< ADC 1 entrée connecteur orange du MUX  A   38 :
+#define ADC_2    4  ///< ADC 2 entrée connecteur orange du MUX  A   39 :
+  A   40 :
+#define AN_VALUE_TMP_MAX	223 ///< Température maximale de l'eau (ADC) : 40°C  A   41 :
+#define AN_VALUE_TMP_MIN	706 ///< Température minimale de l'eau (ADC) : -7°C  A   42 :
+#define VALUE_TMP_MAX	    40  ///< Température maximale de l'eau : 40°C  A   43 :
+#define VALUE_TMP_MIN	    -7  ///< Température minimale de l'eau :-7°C  A   44 :
+  A   45 :
+#define NUM_TMP		7  A   46 :
+const WORD pwTemp[NUM_TMP] = { AN_VALUE_TMP_MIN, 640, 595, 539, 465, 366, AN_VALUE_TMP_MAX }; // -7, 1, 5, 10, 16, 25, 40  A   47 :V29V30
+const CHAR pcTemp[NUM_TMP] = { VALUE_TMP_MIN, 1, 5, 10, 16, 25, VALUE_TMP_MAX }; // -7, 1, 5, 10, 16, 25, 40  A   48 :V32
+  A   49 :
+BYTE bFrameBuf[60];  A   50 :V34
+BYTE bFrameCrc;  A   51 :V35
+CHAR cTemp;  A   52 :V36
+WORD wTemp;  A   53 :V37
+BOOL SpeedNull;  A   54 :V38
+BOOL SpeedValid;  A   55 :V39
+BOOL UpdateSpeed;  A   56 :V40
+BOOL SpeedChange;  A   57 :V41
+WORD wSpeed;  A   58 :V42
+  A   59 :
+typedef struct {  A   60 :
+	WORD wLow;  A   61 :T43
+	BYTE bHigh;  A   62 :
+} ST_PERIODE;  A   63 :
+ST_PERIODE stPeriode;  A   64 :V47
+  A   65 :
+BYTE bPeriode[4];  A   66 :V48
+#define PERIODE			(*((DWORD*)bPeriode))  A   67 :
+#define PERIODE_L		(*((WORD*)bPeriode))	///< Partie basse de la periode  A   68 :
+#define PERIODE_H		(bPeriode[2])			///< Partie haute de la periode  A   69 :
+#define PERIODE_N		(bPeriode[3])			///< Non utilisé, doit être à 0  A   70 :
+  A   71 :
+BYTE CalcCRC( VOID );   ///< Calcul du CRC de la trame NMEA183  A   72 :f303P303
+VOID SendFrame( VOID ); ///< Envoie de la trame NMEA183  A   73 :f304P304
+  A   74 :
+  A   75 :
+VOID main( VOID )  A   76 :f305
+{  A   77 :{32
+	BYTE i;  A   78 :V52
+  A   79 :
+	// Setup I/O PORTS  A   80 :
+	set_tris_a( 0b11111111 ); // 0 output, 1 input  A   81 :
+	set_tris_b( 0b11011111 ); // 0 output, 1 input  A   82 :
+	set_tris_c( 0b10110011 ); // 0 output, 1 input  A   83 :
+	ext_int_edge( L_TO_H ); // INT0 edge  A   84 :
+  A   85 :
+	// Setup Timer  A   86 :
+	setup_timer_1( T1_INTERNAL | T1_DIV_BY_4 );  A   87 :
+	set_timer1( 0 );  A   88 :
+	  A   89 :
+	// Setup ADC  A   90 :
+	setup_adc_ports( A_ANALOG_RA3_RA2_REF ); // A0, A1, A5 (Analog) RA2 RA3 (Vref)  A   91 :
+	setup_adc( ADC_CLOCK_INTERNAL );  A   92 :
+	set_adc_channel(ADC_TEMP);  A   93 :
+	delay_us(10);  A   94 :
+  A   95 :
+	// Setup RS232  A   96 :
+	#use rs232( BAUD=4800, XMIT=NMEA, PARITY=N, BITS=8 )  A   97 :V55
+  A   98 :
+	enable_interrupts( INT_TIMER1 );        A   99 :
+	enable_interrupts( INT_EXT );  A  100 :
+	enable_interrupts( GLOBAL );  A  101 :
+  A  102 :
+	// Init variable  A  103 :
+	stPeriode.wLow  = 0;  A  104 :
+	stPeriode.bHigh	= 0;  A  105 :
+	SpeedNull		= TRUE;  A  106 :
+	SpeedValid		= FALSE;  A  107 :
+	UpdateSpeed		= FALSE;  A  108 :
+	SpeedChange		= TRUE;  A  109 :
+	PERIODE_N		= 0;  A  110 :
+	  A  111 :
+	output_low( LED );  A  112 :
+	  A  113 :
+	for(;;)  A  114 :
+	{  A  115 :
+		/*  A  116 :
+		// Test de ADC1 et ADC2  A  117 :
+		set_adc_channel(ADC_1);  A  118 :
+		delay_ms(100);  A  119 :
+		wSpeed = read_adc();  A  120 :
+		set_adc_channel(ADC_2);  A  121 :
+		delay_ms(100);  A  122 :
+		wTemp = read_adc();  A  123 :
+		set_adc_channel(ADC_TEMP);  A  124 :
+		delay_ms(100);*/  A  125 :
+		  A  126 :
+	    set_adc_channel(ADC_TEMP);  A  127 :{77
+		delay_ms(100);  A  128 :
+		wTemp = read_adc();  A  129 :
+  A  130 :
+		if( wTemp <= AN_VALUE_TMP_MAX )  A  131 :
+		{		  A  132 :
+			cTemp = VALUE_TMP_MAX;  A  133 :{81
+		}  A  134 :}82
+		else  A  135 :
+		{  A  136 :
+           if( wTemp >= AN_VALUE_TMP_MIN )  A  137 :{84
+           {  A  138 :
+			 cTemp = VALUE_TMP_MIN;  A  139 :{87
+		   }  A  140 :}88
+		   else  A  141 :
+		   {  A  142 :
+			  i = 1;  A  143 :{90
+			  while ( wTemp < pwTemp[i])  A  144 :
+			    i++;  A  145 :
+			  cTemp = (pwTemp[i-1] - wTemp) * (pcTemp[i] - pcTemp[i-1]) / (pwTemp[i-1] - pwTemp[i]);  A  146 :V61V62V64V65
+			  cTemp += pcTemp[i-1];  A  147 :
+		   }  A  148 :}109
+		}  A  149 :}110
+  A  150 :
+		///// TEMPERATURE  A  151 :
+		sprintf( bFrameBuf, "IIMTW,%d,C", cTemp ); // Température (Water temperature)  A  152 :V67V69V71V72V74V75
+		bFrameCrc = CalcCRC();  A  153 :
+  A  154 :
+		output_high( LED );  A  155 :
+		SendFrame();  A  156 :
+		output_low( LED );  A  157 :
+		delay_ms(250);  A  158 :
+  A  159 :
+		///// VITESSE  A  160 :
+		if( SpeedChange )  A  161 :
+		{  A  162 :
+			UpdateSpeed = TRUE;  A  163 :{134
+			if( !SpeedNull )  A  164 :
+				wSpeed = 1724138/PERIODE;  A  165 :V77V78
+			else  A  166 :
+				wSpeed = 0;  A  167 :
+			SpeedChange = FALSE;  A  168 :
+			UpdateSpeed = FALSE;  A  169 :
+		}  A  170 :}147
+		sprintf( bFrameBuf, "IIVHW,,,,,%lu.%lu,N,,", wSpeed/10, wSpeed%10 ); // Vitesse (Water speed)  A  171 :V81V82V84
+		bFrameCrc = CalcCRC();		  A  172 :
+		SendFrame();  A  173 :
+		  A  174 :
+		  A  175 :
+		// ADC  A  176 :
+		set_adc_channel(ADC_1);  A  177 :
+		delay_ms(100);  A  178 :
+		wSpeed = read_adc();  A  179 :
+		set_adc_channel(ADC_2);  A  180 :
+		delay_ms(100);  A  181 :
+		wTemp = read_adc();  A  182 :
+		sprintf( bFrameBuf, "AETXT,01,01,01, ADC1=%04lu ADC2=%04lu", wSpeed, wTemp);  A  183 :
+	    bFrameCrc = CalcCRC();		  A  184 :
+		SendFrame();  A  185 :
+		  A  186 :
+		  A  187 :
+		delay_ms(250);  A  188 :
+	}  A  189 :}182
+}  A  190 :}183
+  A  191 :
+  A  192 :
+//-----------------------------------------------------------------------------  A  193 :
+// Nom : CalcCRC()  A  194 :
+// Desc: Calcul le CRC de la trame NMEA  A  195 :
+//-----------------------------------------------------------------------------  A  196 :
+BYTE CalcCRC( VOID )  A  197 :f303
+{  A  198 :{184
+	BYTE i, bCrc;  A  199 :V86V87
+  A  200 :
+	bCrc = 0;  A  201 :
+	i = 0;  A  202 :
+	while( bFrameBuf[i] != 0 )  A  203 :
+	{  A  204 :
+		bCrc ^= bFrameBuf[i];  A  205 :{189
+		i++;  A  206 :
+	}  A  207 :}190
+	  A  208 :
+	return bCrc;  A  209 :
+}  A  210 :}191
+  A  211 :
+  A  212 :
+//-----------------------------------------------------------------------------  A  213 :
+// Nom : SendFrame()  A  214 :
+// Desc: Emet la trame NMEA  A  215 :
+//-----------------------------------------------------------------------------  A  216 :
+VOID SendFrame( VOID )  A  217 :f304
+{  A  218 :{192
+	printf( "$%s*%02x\r\n", bFrameBuf, bFrameCrc );  A  219 :V90V91
+}  A  220 :}205
+  A  221 :
+  A  222 :
+//-----------------------------------------------------------------------------  A  223 :
+// Nom : ISR_Ext()  A  224 :
+// Desc: Lecture de la fréquence du capteur de vitesse  A  225 :
+//-----------------------------------------------------------------------------  A  226 :
+#int_ext  A  227 :
+VOID ISR_Ext( VOID )  A  228 :f333
+{  A  229 :{207
+	stPeriode.wLow = get_timer1()-2;  A  230 :
+	set_timer1( 0 );  A  231 :
+	  A  232 :
+	if( !UpdateSpeed )  A  233 :
+	{  A  234 :
+		if( SpeedValid )  A  235 :{212
+		{  A  236 :
+			SpeedNull = FALSE;  A  237 :{215
+			PERIODE_L = stPeriode.wLow;  A  238 :
+			PERIODE_H = stPeriode.bHigh;  A  239 :
+			  A  240 :
+			SpeedChange = TRUE;  A  241 :
+		}  A  242 :}216
+		else  A  243 :
+			SpeedValid = TRUE;  A  244 :
+	}  A  245 :}218
+	  A  246 :
+	stPeriode.bHigh = 0;  A  247 :
+}  A  248 :}219
+  A  249 :
+//-----------------------------------------------------------------------------  A  250 :
+// Nom : ISR_Timer1()  A  251 :
+// Desc: Time out de la lecture de fréquence du capteur de vitesse  A  252 :
+//-----------------------------------------------------------------------------  A  253 :
+#int_timer1  A  254 :
+VOID ISR_Timer1( VOID )  A  255 :f334
+{  A  256 :{221
+	if( stPeriode.bHigh >= 64 )  A  257 :
+	{  A  258 :
+		SpeedNull  = TRUE;  A  259 :{225
+		SpeedValid = FALSE;  A  260 :
+		  A  261 :
+		SpeedChange = TRUE;  A  262 :
+	}  A  263 :}226
+	else  A  264 :
+		stPeriode.bHigh++;  A  265 :
+}  A  266 :}228E
+ A  266 :
+

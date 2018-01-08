@@ -1,0 +1,1158 @@
+CCS PCM C Compiler, Version 3.190, 23745
+
+               Filename: main.LST
+
+               ROM used: 1395 (17%)
+                         Largest free fragment is 3354
+               RAM used: 105 (60%) at main() level
+                         119 (68%) worst case
+               Stack:    4 worst case (3 in main + 1 for interrupts)
+
+*
+0000:  MOVLW  00
+0001:  MOVWF  0A
+0002:  GOTO   330
+0003:  NOP
+0004:  MOVWF  7F
+0005:  SWAPF  03,W
+0006:  CLRF   03
+0007:  MOVWF  21
+0008:  MOVF   0A,W
+0009:  MOVWF  20
+000A:  CLRF   0A
+000B:  MOVF   04,W
+000C:  MOVWF  22
+000D:  MOVF   77,W
+000E:  MOVWF  23
+000F:  MOVF   78,W
+0010:  MOVWF  24
+0011:  MOVF   79,W
+0012:  MOVWF  25
+0013:  MOVF   7A,W
+0014:  MOVWF  26
+0015:  MOVF   7B,W
+0016:  MOVWF  27
+0017:  BCF    03.7
+0018:  BCF    03.5
+0019:  BTFSS  0B.4
+001A:  GOTO   01D
+001B:  BTFSC  0B.1
+001C:  GOTO   036
+001D:  MOVLW  8C
+001E:  MOVWF  04
+001F:  BTFSS  00.0
+0020:  GOTO   023
+0021:  BTFSC  0C.0
+0022:  GOTO   039
+0023:  MOVF   22,W
+0024:  MOVWF  04
+0025:  MOVF   23,W
+0026:  MOVWF  77
+0027:  MOVF   24,W
+0028:  MOVWF  78
+0029:  MOVF   25,W
+002A:  MOVWF  79
+002B:  MOVF   26,W
+002C:  MOVWF  7A
+002D:  MOVF   27,W
+002E:  MOVWF  7B
+002F:  MOVF   20,W
+0030:  MOVWF  0A
+0031:  SWAPF  21,W
+0032:  MOVWF  03
+0033:  SWAPF  7F,F
+0034:  SWAPF  7F,W
+0035:  RETFIE
+0036:  BCF    0A.3
+0037:  BCF    0A.4
+0038:  GOTO   0A7
+0039:  BCF    0A.3
+003A:  BCF    0A.4
+003B:  GOTO   0D9
+....................  /**   
+.................... \file main.c  
+.................... \brief 		Fichier unique de la carte V-T°-P NMEA183 PIC16F87x  
+....................   
+.................... \date 	  	Novembre 2004  
+.................... \version  	PIC16F873  
+.................... \version  	Carte marine V-T°-P NMEA183 PIC16F873  
+.................... \version    Compilateur C CCS  
+.................... \version 	1.0  
+.................... \author		David Provent, modifications et adaptation au PIC16F876 Vincent AUBINEAU,  Exxotest, Annecy, Haute-Savoie, FRANCE.  
+.................... \bug 		Pas de bogues connus pour le moment   
+.................... */  
+....................   
+....................   
+.................... #case  
+....................   
+.................... #include <16F876A.h> 
+....................  //////// Standard Header file for the PIC16F876A device ////////////////  
+.................... #device PIC16F876A  
+.................... #list  
+....................  
+.................... #include "types.h" 
+....................    
+.................... #ifndef __TYPES_H__  
+.................... #define __TYPES_H__  
+....................   
+.................... #undef VOID  
+.................... #undef BOOL  
+.................... #undef BYTE  
+.................... #undef WORD  
+.................... #undef DWORD  
+.................... #undef CHAR  
+.................... #undef SHORT  
+.................... #undef LONG  
+.................... #undef FLOAT  
+....................   
+.................... #define VOID	void  
+.................... #define BOOL	int1  
+....................   
+.................... #define BYTE	unsigned int8  
+.................... #define WORD	unsigned int16  
+.................... #define DWORD	unsigned int32  
+....................   
+.................... #define CHAR	signed int8  
+.................... #define SHORT	signed int16  
+.................... #define LONG	signed int32  
+....................   
+.................... #define FLOAT	float  
+....................   
+....................   
+.................... #endif // __TYPES_H__  
+....................  
+....................   
+.................... #device ADC=10  
+.................... #fuses NOCPD, NOPROTECT, NODEBUG  
+.................... #fuses NOWDT, NOLVP, NOPUT, NOBROWNOUT  
+.................... #fuses HS  
+.................... #use delay(clock=16000000)  
+*
+00E6:  MOVLW  A0
+00E7:  MOVWF  04
+00E8:  MOVF   00,W
+00E9:  BTFSC  03.2
+00EA:  GOTO   0FA
+00EB:  MOVLW  05
+00EC:  MOVWF  78
+00ED:  CLRF   77
+00EE:  DECFSZ 77,F
+00EF:  GOTO   0EE
+00F0:  DECFSZ 78,F
+00F1:  GOTO   0ED
+00F2:  MOVLW  2E
+00F3:  MOVWF  77
+00F4:  DECFSZ 77,F
+00F5:  GOTO   0F4
+00F6:  NOP
+00F7:  NOP
+00F8:  DECFSZ 00,F
+00F9:  GOTO   0EB
+00FA:  RETLW  00
+.................... #use fast_io(A)  
+.................... #use fast_io(B)  
+.................... #use fast_io(C)  
+....................   
+.................... // I/O pins  
+.................... #define MES_TEMP	PIN_A0  ///< Entrée mesure de température (analogique)  
+.................... #define MES_ADC1    PIN_A1  ///< Entrée mesure ADC1 (analogique) du connecteur orange 2 voies  
+.................... #define MES_ADC2    PIN_A5  ///< Entrée mesure ADC2 (analogique) du connecteur orange 2 voies  
+.................... #define MES_SPEED	PIN_B0  ///< Mesure de la vitesse  
+.................... #define LED		    PIN_B5  ///< LED verte  
+.................... #define NMEA		PIN_C6  ///< TX NMEA183  
+....................   
+.................... #define ADC_TEMP 0  ///< ADC entrée température du MUX  
+.................... #define ADC_1    1  ///< ADC 1 entrée connecteur orange du MUX  
+.................... #define ADC_2    4  ///< ADC 2 entrée connecteur orange du MUX  
+....................   
+.................... #define AN_VALUE_TMP_MAX	223 ///< Température maximale de l'eau (ADC) : 40°C  
+.................... #define AN_VALUE_TMP_MIN	706 ///< Température minimale de l'eau (ADC) : -7°C  
+.................... #define VALUE_TMP_MAX	    40  ///< Température maximale de l'eau : 40°C  
+.................... #define VALUE_TMP_MIN	    -7  ///< Température minimale de l'eau :-7°C  
+....................   
+.................... #define NUM_TMP		7  
+.................... const WORD pwTemp[NUM_TMP] = { AN_VALUE_TMP_MIN, 640, 595, 539, 465, 366, AN_VALUE_TMP_MAX }; // -7, 1, 5, 10, 16, 25, 40  
+.................... const CHAR pcTemp[NUM_TMP] = { VALUE_TMP_MIN, 1, 5, 10, 16, 25, VALUE_TMP_MAX }; // -7, 1, 5, 10, 16, 25, 40  
+....................   
+.................... BYTE bFrameBuf[60];  
+.................... BYTE bFrameCrc;  
+.................... CHAR cTemp;  
+.................... WORD wTemp;  
+.................... BOOL SpeedNull;  
+.................... BOOL SpeedValid;  
+.................... BOOL UpdateSpeed;  
+.................... BOOL SpeedChange;  
+.................... WORD wSpeed;  
+....................   
+.................... typedef struct {  
+.................... 	WORD wLow;  
+.................... 	BYTE bHigh;  
+.................... } ST_PERIODE;  
+.................... ST_PERIODE stPeriode;  
+....................   
+.................... BYTE bPeriode[4];  
+.................... #define PERIODE			(*((DWORD*)bPeriode))  
+.................... #define PERIODE_L		(*((WORD*)bPeriode))	///< Partie basse de la periode  
+.................... #define PERIODE_H		(bPeriode[2])			///< Partie haute de la periode  
+.................... #define PERIODE_N		(bPeriode[3])			///< Non utilisé, doit être à 0  
+....................   
+.................... BYTE CalcCRC( VOID );   ///< Calcul du CRC de la trame NMEA183  
+.................... VOID SendFrame( VOID ); ///< Envoie de la trame NMEA183  
+....................   
+....................   
+.................... VOID main( VOID )  
+.................... {  
+*
+0330:  CLRF   04
+0331:  MOVLW  1F
+0332:  ANDWF  03,F
+0333:  MOVLW  06
+0334:  BSF    03.5
+0335:  MOVWF  1F
+0336:  MOVLW  07
+0337:  BCF    03.5
+0338:  MOVWF  1F
+0339:  BSF    07.6
+.................... 	BYTE i;  
+....................   
+.................... 	// Setup I/O PORTS  
+.................... 	set_tris_a( 0b11111111 ); // 0 output, 1 input  
+*
+033B:  MOVLW  FF
+033C:  BSF    03.5
+033D:  MOVWF  05
+.................... 	set_tris_b( 0b11011111 ); // 0 output, 1 input  
+033E:  MOVLW  DF
+033F:  MOVWF  06
+.................... 	set_tris_c( 0b10110011 ); // 0 output, 1 input  
+0340:  MOVLW  B3
+0341:  MOVWF  07
+.................... 	ext_int_edge( L_TO_H ); // INT0 edge  
+0342:  BSF    01.6
+....................   
+.................... 	// Setup Timer  
+.................... 	setup_timer_1( T1_INTERNAL | T1_DIV_BY_4 );  
+0343:  MOVLW  A5
+0344:  BCF    03.5
+0345:  MOVWF  10
+.................... 	set_timer1( 0 );  
+0346:  CLRF   0F
+0347:  CLRF   0E
+.................... 	  
+.................... 	// Setup ADC  
+.................... 	setup_adc_ports( A_ANALOG_RA3_RA2_REF ); // A0, A1, A5 (Analog) RA2 RA3 (Vref)  
+0348:  MOVLW  8C
+0349:  BSF    03.5
+034A:  MOVWF  1F
+.................... 	setup_adc( ADC_CLOCK_INTERNAL );  
+034B:  BCF    03.5
+034C:  MOVF   1F,W
+034D:  ANDLW  38
+034E:  IORLW  C1
+034F:  MOVWF  1F
+.................... 	set_adc_channel(ADC_TEMP);  
+0350:  MOVLW  00
+0351:  MOVWF  78
+0352:  MOVF   1F,W
+0353:  ANDLW  C7
+0354:  IORWF  78,W
+0355:  MOVWF  1F
+.................... 	delay_us(10);  
+0356:  MOVLW  0D
+0357:  MOVWF  77
+0358:  DECFSZ 77,F
+0359:  GOTO   358
+....................   
+.................... 	// Setup RS232  
+.................... 	#use rs232( BAUD=4800, XMIT=NMEA, PARITY=N, BITS=8 )  
+*
+01DE:  BCF    07.6
+01DF:  MOVLW  08
+01E0:  MOVWF  78
+01E1:  NOP
+01E2:  NOP
+01E3:  NOP
+01E4:  BSF    78.7
+01E5:  GOTO   1F7
+01E6:  BCF    78.7
+01E7:  BSF    03.5
+01E8:  RRF    23,F
+01E9:  BCF    03.5
+01EA:  BTFSC  03.0
+01EB:  BSF    07.6
+01EC:  BTFSS  03.0
+01ED:  BCF    07.6
+01EE:  BSF    78.6
+01EF:  GOTO   1F7
+01F0:  BCF    78.6
+01F1:  DECFSZ 78,F
+01F2:  GOTO   1E7
+01F3:  NOP
+01F4:  NOP
+01F5:  NOP
+01F6:  BSF    07.6
+01F7:  MOVLW  01
+01F8:  MOVWF  77
+01F9:  CLRF   04
+01FA:  DECFSZ 04,F
+01FB:  GOTO   1FA
+01FC:  DECFSZ 77,F
+01FD:  GOTO   1F9
+01FE:  MOVLW  0D
+01FF:  MOVWF  04
+0200:  DECFSZ 04,F
+0201:  GOTO   200
+0202:  NOP
+0203:  NOP
+0204:  BTFSC  78.7
+0205:  GOTO   1E6
+0206:  BTFSC  78.6
+0207:  GOTO   1F0
+0208:  RETLW  00
+....................   
+.................... 	enable_interrupts( INT_TIMER1 );        
+*
+035A:  BSF    03.5
+035B:  BSF    0C.0
+.................... 	enable_interrupts( INT_EXT );  
+035C:  BCF    03.5
+035D:  BSF    0B.4
+.................... 	enable_interrupts( GLOBAL );  
+035E:  MOVLW  C0
+035F:  IORWF  0B,F
+....................   
+.................... 	// Init variable  
+.................... 	stPeriode.wLow  = 0;  
+0360:  CLRF   6C
+0361:  CLRF   6B
+.................... 	stPeriode.bHigh	= 0;  
+0362:  CLRF   6D
+.................... 	SpeedNull		= TRUE;  
+0363:  BSF    68.0
+.................... 	SpeedValid		= FALSE;  
+0364:  BCF    68.1
+.................... 	UpdateSpeed		= FALSE;  
+0365:  BCF    68.2
+.................... 	SpeedChange		= TRUE;  
+0366:  BSF    68.3
+.................... 	PERIODE_N		= 0;  
+0367:  CLRF   71
+.................... 	  
+.................... 	output_low( LED );  
+0368:  BCF    06.5
+.................... 	  
+.................... 	for(;;)  
+.................... 	{  
+.................... 		/*  
+.................... 		// Test de ADC1 et ADC2  
+.................... 		set_adc_channel(ADC_1);  
+.................... 		delay_ms(100);  
+.................... 		wSpeed = read_adc();  
+.................... 		set_adc_channel(ADC_2);  
+.................... 		delay_ms(100);  
+.................... 		wTemp = read_adc();  
+.................... 		set_adc_channel(ADC_TEMP);  
+.................... 		delay_ms(100);*/  
+.................... 		  
+.................... 	    set_adc_channel(ADC_TEMP);  
+0369:  MOVLW  00
+036A:  MOVWF  78
+036B:  MOVF   1F,W
+036C:  ANDLW  C7
+036D:  IORWF  78,W
+036E:  MOVWF  1F
+.................... 		delay_ms(100);  
+036F:  MOVLW  64
+0370:  BSF    03.5
+0371:  MOVWF  20
+0372:  BCF    03.5
+0373:  CALL   0E6
+.................... 		wTemp = read_adc();  
+0374:  BSF    1F.2
+0375:  BTFSC  1F.2
+0376:  GOTO   375
+0377:  BSF    03.5
+0378:  MOVF   1E,W
+0379:  BCF    03.5
+037A:  MOVWF  66
+037B:  MOVF   1E,W
+037C:  MOVWF  67
+....................   
+.................... 		if( wTemp <= AN_VALUE_TMP_MAX )  
+037D:  MOVF   67,F
+037E:  BTFSS  03.2
+037F:  GOTO   387
+0380:  MOVF   66,W
+0381:  SUBLW  DF
+0382:  BTFSS  03.0
+0383:  GOTO   387
+.................... 		{		  
+.................... 			cTemp = VALUE_TMP_MAX;  
+0384:  MOVLW  28
+0385:  MOVWF  65
+.................... 		}  
+.................... 		else  
+0386:  GOTO   433
+.................... 		{  
+....................            if( wTemp >= AN_VALUE_TMP_MIN )  
+0387:  MOVF   67,W
+0388:  SUBLW  01
+0389:  BTFSC  03.0
+038A:  GOTO   395
+038B:  XORLW  FF
+038C:  BTFSS  03.2
+038D:  GOTO   392
+038E:  MOVF   66,W
+038F:  SUBLW  C1
+0390:  BTFSC  03.0
+0391:  GOTO   395
+....................            {  
+.................... 			 cTemp = VALUE_TMP_MIN;  
+0392:  MOVLW  F9
+0393:  MOVWF  65
+.................... 		   }  
+.................... 		   else  
+0394:  GOTO   433
+.................... 		   {  
+.................... 			  i = 1;  
+0395:  MOVLW  01
+0396:  MOVWF  73
+.................... 			  while ( wTemp < pwTemp[i])  
+.................... 			    i++;  
+0397:  BCF    03.0
+0398:  RLF    73,W
+0399:  BSF    03.5
+039A:  MOVWF  20
+039B:  INCF   20,W
+039C:  BCF    03.5
+039D:  CALL   03C
+039E:  MOVWF  7A
+039F:  BSF    03.5
+03A0:  MOVF   20,W
+03A1:  BCF    03.5
+03A2:  CALL   03C
+03A3:  MOVWF  78
+03A4:  MOVF   67,W
+03A5:  SUBWF  7A,W
+03A6:  BTFSS  03.0
+03A7:  GOTO   3B0
+03A8:  BTFSS  03.2
+03A9:  GOTO   3AE
+03AA:  MOVF   78,W
+03AB:  SUBWF  66,W
+03AC:  BTFSC  03.0
+03AD:  GOTO   3B0
+03AE:  INCF   73,F
+03AF:  GOTO   397
+.................... 			  cTemp = (pwTemp[i-1] - wTemp) * (pcTemp[i] - pcTemp[i-1]) / (pwTemp[i-1] - pwTemp[i]);  
+03B0:  MOVLW  01
+03B1:  SUBWF  73,W
+03B2:  MOVWF  77
+03B3:  BCF    03.0
+03B4:  RLF    77,F
+03B5:  MOVF   77,W
+03B6:  BSF    03.5
+03B7:  MOVWF  21
+03B8:  INCF   21,W
+03B9:  BCF    03.5
+03BA:  CALL   03C
+03BB:  MOVWF  7A
+03BC:  BSF    03.5
+03BD:  MOVF   21,W
+03BE:  BCF    03.5
+03BF:  CALL   03C
+03C0:  BSF    03.5
+03C1:  MOVWF  22
+03C2:  MOVF   7A,W
+03C3:  MOVWF  23
+03C4:  BCF    03.5
+03C5:  MOVF   66,W
+03C6:  BSF    03.5
+03C7:  SUBWF  22,W
+03C8:  MOVWF  24
+03C9:  MOVF   23,W
+03CA:  MOVWF  25
+03CB:  BCF    03.5
+03CC:  MOVF   67,W
+03CD:  BTFSS  03.0
+03CE:  INCFSZ 67,W
+03CF:  GOTO   3D1
+03D0:  GOTO   3D4
+03D1:  BSF    03.5
+03D2:  SUBWF  25,F
+03D3:  BCF    03.5
+03D4:  MOVF   73,W
+03D5:  CALL   04E
+03D6:  BSF    03.5
+03D7:  MOVWF  26
+03D8:  MOVLW  01
+03D9:  SUBWF  73,W
+03DA:  BCF    03.5
+03DB:  CALL   04E
+03DC:  MOVWF  78
+03DD:  BSF    03.5
+03DE:  SUBWF  26,W
+03DF:  CLRF   7A
+03E0:  MOVWF  77
+03E1:  BTFSC  77.7
+03E2:  DECF   7A,F
+03E3:  MOVWF  28
+03E4:  MOVF   7A,W
+03E5:  MOVWF  29
+03E6:  MOVF   25,W
+03E7:  MOVWF  2B
+03E8:  MOVF   24,W
+03E9:  MOVWF  2A
+03EA:  MOVF   29,W
+03EB:  MOVWF  2D
+03EC:  MOVF   28,W
+03ED:  MOVWF  2C
+03EE:  BCF    03.5
+03EF:  GOTO   0FB
+03F0:  MOVF   79,W
+03F1:  BSF    03.5
+03F2:  MOVWF  26
+03F3:  MOVF   78,W
+03F4:  MOVWF  25
+03F5:  MOVLW  01
+03F6:  SUBWF  73,W
+03F7:  MOVWF  77
+03F8:  BCF    03.0
+03F9:  RLF    77,F
+03FA:  MOVF   77,W
+03FB:  MOVWF  2A
+03FC:  INCF   2A,W
+03FD:  BCF    03.5
+03FE:  CALL   03C
+03FF:  MOVWF  7A
+0400:  BSF    03.5
+0401:  MOVF   2A,W
+0402:  BCF    03.5
+0403:  CALL   03C
+0404:  BSF    03.5
+0405:  MOVWF  2B
+0406:  MOVF   7A,W
+0407:  MOVWF  2C
+0408:  BCF    03.0
+0409:  RLF    73,W
+040A:  MOVWF  2D
+040B:  INCF   2D,W
+040C:  BCF    03.5
+040D:  CALL   03C
+040E:  MOVWF  7A
+040F:  BSF    03.5
+0410:  MOVF   2D,W
+0411:  BCF    03.5
+0412:  CALL   03C
+0413:  BSF    03.5
+0414:  SUBWF  2B,W
+0415:  MOVWF  77
+0416:  MOVF   7A,W
+0417:  BTFSS  03.0
+0418:  INCFSZ 7A,W
+0419:  GOTO   41C
+041A:  MOVF   2C,W
+041B:  GOTO   41D
+041C:  SUBWF  2C,W
+041D:  MOVWF  7A
+041E:  MOVF   77,W
+041F:  MOVWF  2E
+0420:  MOVF   7A,W
+0421:  MOVWF  2F
+0422:  MOVF   26,W
+0423:  MOVWF  31
+0424:  MOVF   25,W
+0425:  MOVWF  30
+0426:  MOVF   2F,W
+0427:  MOVWF  33
+0428:  MOVF   2E,W
+0429:  MOVWF  32
+042A:  BCF    03.5
+042B:  GOTO   114
+042C:  MOVF   78,W
+042D:  MOVWF  65
+.................... 			  cTemp += pcTemp[i-1];  
+042E:  MOVLW  01
+042F:  SUBWF  73,W
+0430:  CALL   04E
+0431:  MOVWF  78
+0432:  ADDWF  65,F
+.................... 		   }  
+.................... 		}  
+....................   
+.................... 		///// TEMPERATURE  
+.................... 		sprintf( bFrameBuf, "IIMTW,%d,C", cTemp ); // Température (Water temperature)  
+*
+033A:  CLRF   72
+*
+0433:  MOVLW  28
+0434:  MOVWF  72
+0435:  BSF    03.5
+0436:  CLRF   20
+0437:  MOVF   20,W
+0438:  BCF    03.5
+0439:  CALL   059
+043A:  BSF    03.5
+043B:  INCF   20,F
+043C:  MOVWF  77
+043D:  MOVWF  2E
+043E:  BCF    03.5
+043F:  CALL   157
+0440:  MOVLW  06
+0441:  BSF    03.5
+0442:  SUBWF  20,W
+0443:  BTFSS  03.2
+0444:  GOTO   437
+0445:  BCF    03.5
+0446:  MOVF   65,W
+0447:  BSF    03.5
+0448:  MOVWF  21
+0449:  MOVLW  18
+044A:  MOVWF  22
+044B:  BCF    03.5
+044C:  GOTO   178
+044D:  MOVLW  2C
+044E:  BSF    03.5
+044F:  MOVWF  2E
+0450:  BCF    03.5
+0451:  CALL   157
+0452:  MOVLW  43
+0453:  BSF    03.5
+0454:  MOVWF  2E
+0455:  BCF    03.5
+0456:  CALL   157
+.................... 		bFrameCrc = CalcCRC();  
+0457:  CALL   1CA
+0458:  MOVF   78,W
+0459:  MOVWF  64
+....................   
+.................... 		output_high( LED );  
+045A:  BSF    06.5
+.................... 		SendFrame();  
+045B:  CALL   230
+.................... 		output_low( LED );  
+045C:  BCF    06.5
+.................... 		delay_ms(250);  
+045D:  MOVLW  FA
+045E:  BSF    03.5
+045F:  MOVWF  20
+0460:  BCF    03.5
+0461:  CALL   0E6
+....................   
+.................... 		///// VITESSE  
+.................... 		if( SpeedChange )  
+0462:  BTFSS  68.3
+0463:  GOTO   49C
+.................... 		{  
+.................... 			UpdateSpeed = TRUE;  
+0464:  BSF    68.2
+.................... 			if( !SpeedNull )  
+0465:  BTFSC  68.0
+0466:  GOTO   498
+.................... 				wSpeed = 1724138/PERIODE;  
+0467:  MOVLW  6E
+0468:  MOVWF  04
+0469:  MOVF   00,W
+046A:  MOVWF  77
+046B:  INCF   04,F
+046C:  MOVF   00,W
+046D:  MOVWF  78
+046E:  INCF   04,F
+046F:  MOVF   00,W
+0470:  MOVWF  79
+0471:  INCF   04,F
+0472:  MOVF   00,W
+0473:  MOVWF  7A
+0474:  BSF    03.5
+0475:  MOVWF  23
+0476:  MOVF   79,W
+0477:  MOVWF  22
+0478:  MOVF   78,W
+0479:  MOVWF  21
+047A:  MOVF   77,W
+047B:  MOVWF  20
+047C:  MOVF   04,W
+047D:  MOVWF  24
+047E:  CLRF   28
+047F:  MOVLW  1A
+0480:  MOVWF  27
+0481:  MOVLW  4E
+0482:  MOVWF  26
+0483:  MOVLW  EA
+0484:  MOVWF  25
+0485:  MOVF   23,W
+0486:  MOVWF  2C
+0487:  MOVF   22,W
+0488:  MOVWF  2B
+0489:  MOVF   21,W
+048A:  MOVWF  2A
+048B:  MOVF   20,W
+048C:  MOVWF  29
+048D:  BCF    03.5
+048E:  GOTO   25F
+048F:  BSF    03.5
+0490:  MOVF   24,W
+0491:  MOVWF  04
+0492:  MOVF   78,W
+0493:  BCF    03.5
+0494:  MOVWF  6A
+0495:  MOVF   77,W
+0496:  MOVWF  69
+.................... 			else  
+0497:  GOTO   49A
+.................... 				wSpeed = 0;  
+0498:  CLRF   6A
+0499:  CLRF   69
+.................... 			SpeedChange = FALSE;  
+049A:  BCF    68.3
+.................... 			UpdateSpeed = FALSE;  
+049B:  BCF    68.2
+.................... 		}  
+.................... 		sprintf( bFrameBuf, "IIVHW,,,,,%lu.%lu,N,,", wSpeed/10, wSpeed%10 ); // Vitesse (Water speed)  
+049C:  MOVF   6A,W
+049D:  BSF    03.5
+049E:  MOVWF  23
+049F:  BCF    03.5
+04A0:  MOVF   69,W
+04A1:  BSF    03.5
+04A2:  MOVWF  22
+04A3:  CLRF   25
+04A4:  MOVLW  0A
+04A5:  MOVWF  24
+04A6:  BCF    03.5
+04A7:  CALL   2A5
+04A8:  MOVF   79,W
+04A9:  BSF    03.5
+04AA:  MOVWF  21
+04AB:  MOVF   78,W
+04AC:  MOVWF  20
+04AD:  BCF    03.5
+04AE:  MOVF   6A,W
+04AF:  BSF    03.5
+04B0:  MOVWF  23
+04B1:  BCF    03.5
+04B2:  MOVF   69,W
+04B3:  BSF    03.5
+04B4:  MOVWF  22
+04B5:  CLRF   25
+04B6:  MOVLW  0A
+04B7:  MOVWF  24
+04B8:  BCF    03.5
+04B9:  CALL   2A5
+04BA:  MOVF   77,W
+04BB:  BSF    03.5
+04BC:  MOVWF  22
+04BD:  MOVF   7A,W
+04BE:  MOVWF  23
+04BF:  MOVLW  28
+04C0:  MOVWF  72
+04C1:  CLRF   24
+04C2:  MOVF   24,W
+04C3:  BCF    03.5
+04C4:  CALL   068
+04C5:  BSF    03.5
+04C6:  INCF   24,F
+04C7:  MOVWF  77
+04C8:  MOVWF  2E
+04C9:  BCF    03.5
+04CA:  CALL   157
+04CB:  MOVLW  05
+04CC:  BSF    03.5
+04CD:  SUBWF  24,W
+04CE:  BTFSS  03.2
+04CF:  GOTO   4C2
+04D0:  MOVLW  05
+04D1:  MOVWF  25
+04D2:  MOVLW  2C
+04D3:  MOVWF  2E
+04D4:  BCF    03.5
+04D5:  CALL   157
+04D6:  BSF    03.5
+04D7:  DECFSZ 25,F
+04D8:  GOTO   4D2
+04D9:  MOVLW  10
+04DA:  MOVWF  04
+04DB:  MOVF   21,W
+04DC:  MOVWF  27
+04DD:  MOVF   20,W
+04DE:  MOVWF  26
+04DF:  BCF    03.5
+04E0:  CALL   2CD
+04E1:  MOVLW  2E
+04E2:  BSF    03.5
+04E3:  MOVWF  2E
+04E4:  BCF    03.5
+04E5:  CALL   157
+04E6:  MOVLW  10
+04E7:  MOVWF  04
+04E8:  BSF    03.5
+04E9:  MOVF   23,W
+04EA:  MOVWF  27
+04EB:  MOVF   22,W
+04EC:  MOVWF  26
+04ED:  BCF    03.5
+04EE:  CALL   2CD
+04EF:  MOVLW  0C
+04F0:  BSF    03.5
+04F1:  MOVWF  26
+04F2:  MOVF   26,W
+04F3:  BCF    03.5
+04F4:  CALL   068
+04F5:  BSF    03.5
+04F6:  INCF   26,F
+04F7:  MOVWF  77
+04F8:  MOVWF  2E
+04F9:  BCF    03.5
+04FA:  CALL   157
+04FB:  MOVLW  10
+04FC:  BSF    03.5
+04FD:  SUBWF  26,W
+04FE:  BTFSS  03.2
+04FF:  GOTO   4F2
+.................... 		bFrameCrc = CalcCRC();		  
+0500:  BCF    03.5
+0501:  CALL   1CA
+0502:  MOVF   78,W
+0503:  MOVWF  64
+.................... 		SendFrame();  
+0504:  CALL   230
+.................... 		  
+.................... 		  
+.................... 		// ADC  
+.................... 		set_adc_channel(ADC_1);  
+0505:  MOVLW  08
+0506:  MOVWF  78
+0507:  MOVF   1F,W
+0508:  ANDLW  C7
+0509:  IORWF  78,W
+050A:  MOVWF  1F
+.................... 		delay_ms(100);  
+050B:  MOVLW  64
+050C:  BSF    03.5
+050D:  MOVWF  20
+050E:  BCF    03.5
+050F:  CALL   0E6
+.................... 		wSpeed = read_adc();  
+0510:  BSF    1F.2
+0511:  BTFSC  1F.2
+0512:  GOTO   511
+0513:  BSF    03.5
+0514:  MOVF   1E,W
+0515:  BCF    03.5
+0516:  MOVWF  69
+0517:  MOVF   1E,W
+0518:  MOVWF  6A
+.................... 		set_adc_channel(ADC_2);  
+0519:  MOVLW  20
+051A:  MOVWF  78
+051B:  MOVF   1F,W
+051C:  ANDLW  C7
+051D:  IORWF  78,W
+051E:  MOVWF  1F
+.................... 		delay_ms(100);  
+051F:  MOVLW  64
+0520:  BSF    03.5
+0521:  MOVWF  20
+0522:  BCF    03.5
+0523:  CALL   0E6
+.................... 		wTemp = read_adc();  
+0524:  BSF    1F.2
+0525:  BTFSC  1F.2
+0526:  GOTO   525
+0527:  BSF    03.5
+0528:  MOVF   1E,W
+0529:  BCF    03.5
+052A:  MOVWF  66
+052B:  MOVF   1E,W
+052C:  MOVWF  67
+.................... 		sprintf( bFrameBuf, "AETXT,01,01,01, ADC1=%04lu ADC2=%04lu", wSpeed, wTemp);  
+052D:  MOVLW  28
+052E:  MOVWF  72
+052F:  BSF    03.5
+0530:  CLRF   20
+0531:  MOVF   20,W
+0532:  BCF    03.5
+0533:  CALL   07D
+0534:  BSF    03.5
+0535:  INCF   20,F
+0536:  MOVWF  77
+0537:  MOVWF  2E
+0538:  BCF    03.5
+0539:  CALL   157
+053A:  MOVLW  15
+053B:  BSF    03.5
+053C:  SUBWF  20,W
+053D:  BTFSS  03.2
+053E:  GOTO   531
+053F:  MOVLW  09
+0540:  MOVWF  04
+0541:  BCF    03.5
+0542:  MOVF   6A,W
+0543:  BSF    03.5
+0544:  MOVWF  27
+0545:  BCF    03.5
+0546:  MOVF   69,W
+0547:  BSF    03.5
+0548:  MOVWF  26
+0549:  BCF    03.5
+054A:  CALL   2CD
+054B:  MOVLW  1A
+054C:  BSF    03.5
+054D:  MOVWF  21
+054E:  MOVF   21,W
+054F:  BCF    03.5
+0550:  CALL   07D
+0551:  BSF    03.5
+0552:  INCF   21,F
+0553:  MOVWF  77
+0554:  MOVWF  2E
+0555:  BCF    03.5
+0556:  CALL   157
+0557:  MOVLW  20
+0558:  BSF    03.5
+0559:  SUBWF  21,W
+055A:  BTFSS  03.2
+055B:  GOTO   54E
+055C:  MOVLW  09
+055D:  MOVWF  04
+055E:  BCF    03.5
+055F:  MOVF   67,W
+0560:  BSF    03.5
+0561:  MOVWF  27
+0562:  BCF    03.5
+0563:  MOVF   66,W
+0564:  BSF    03.5
+0565:  MOVWF  26
+0566:  BCF    03.5
+0567:  CALL   2CD
+.................... 	    bFrameCrc = CalcCRC();		  
+0568:  CALL   1CA
+0569:  MOVF   78,W
+056A:  MOVWF  64
+.................... 		SendFrame();  
+056B:  CALL   230
+.................... 		  
+.................... 		  
+.................... 		delay_ms(250);  
+056C:  MOVLW  FA
+056D:  BSF    03.5
+056E:  MOVWF  20
+056F:  BCF    03.5
+0570:  CALL   0E6
+.................... 	}  
+0571:  GOTO   369
+.................... }  
+....................   
+....................   
+.................... //-----------------------------------------------------------------------------  
+.................... // Nom : CalcCRC()  
+.................... // Desc: Calcul le CRC de la trame NMEA  
+.................... //-----------------------------------------------------------------------------  
+.................... BYTE CalcCRC( VOID )  
+.................... {  
+0572:  SLEEP
+.................... 	BYTE i, bCrc;  
+....................   
+.................... 	bCrc = 0;  
+*
+01CA:  BSF    03.5
+01CB:  CLRF   21
+.................... 	i = 0;  
+01CC:  CLRF   20
+.................... 	while( bFrameBuf[i] != 0 )  
+.................... 	{  
+01CD:  MOVLW  28
+01CE:  ADDWF  20,W
+01CF:  MOVWF  04
+01D0:  MOVF   00,F
+01D1:  BTFSC  03.2
+01D2:  GOTO   1DA
+.................... 		bCrc ^= bFrameBuf[i];  
+01D3:  MOVLW  28
+01D4:  ADDWF  20,W
+01D5:  MOVWF  04
+01D6:  MOVF   00,W
+01D7:  XORWF  21,F
+.................... 		i++;  
+01D8:  INCF   20,F
+.................... 	}  
+01D9:  GOTO   1CD
+.................... 	  
+.................... 	return bCrc;  
+01DA:  MOVF   21,W
+01DB:  MOVWF  78
+.................... }  
+01DC:  BCF    03.5
+01DD:  RETLW  00
+....................   
+....................   
+.................... //-----------------------------------------------------------------------------  
+.................... // Nom : SendFrame()  
+.................... // Desc: Emet la trame NMEA  
+.................... //-----------------------------------------------------------------------------  
+.................... VOID SendFrame( VOID )  
+.................... {  
+.................... 	printf( "$%s*%02x\r\n", bFrameBuf, bFrameCrc );  
+*
+0230:  MOVLW  24
+0231:  BSF    03.5
+0232:  MOVWF  23
+0233:  BCF    03.5
+0234:  CALL   1DE
+0235:  MOVLW  28
+0236:  MOVWF  04
+0237:  MOVLW  00
+0238:  IORWF  00,W
+0239:  BTFSC  03.2
+023A:  GOTO   248
+023B:  MOVF   04,W
+023C:  BSF    03.5
+023D:  MOVWF  20
+023E:  MOVF   00,W
+023F:  MOVWF  23
+0240:  BCF    03.5
+0241:  CALL   1DE
+0242:  BSF    03.5
+0243:  MOVF   20,W
+0244:  MOVWF  04
+0245:  INCF   04,F
+0246:  BCF    03.5
+0247:  GOTO   237
+0248:  MOVLW  2A
+0249:  BSF    03.5
+024A:  MOVWF  23
+024B:  BCF    03.5
+024C:  CALL   1DE
+024D:  MOVF   64,W
+024E:  BSF    03.5
+024F:  MOVWF  21
+0250:  MOVLW  57
+0251:  MOVWF  22
+0252:  BCF    03.5
+0253:  GOTO   209
+0254:  MOVLW  0D
+0255:  BSF    03.5
+0256:  MOVWF  23
+0257:  BCF    03.5
+0258:  CALL   1DE
+0259:  MOVLW  0A
+025A:  BSF    03.5
+025B:  MOVWF  23
+025C:  BCF    03.5
+025D:  CALL   1DE
+.................... }  
+025E:  RETLW  00
+....................   
+....................   
+.................... //-----------------------------------------------------------------------------  
+.................... // Nom : ISR_Ext()  
+.................... // Desc: Lecture de la fréquence du capteur de vitesse  
+.................... //-----------------------------------------------------------------------------  
+.................... #int_ext  
+.................... VOID ISR_Ext( VOID )  
+.................... {  
+.................... 	stPeriode.wLow = get_timer1()-2;  
+*
+00A7:  MOVF   0F,W
+00A8:  MOVWF  7A
+00A9:  MOVF   0E,W
+00AA:  MOVWF  77
+00AB:  MOVF   0F,W
+00AC:  SUBWF  7A,W
+00AD:  BTFSS  03.2
+00AE:  GOTO   0A7
+00AF:  MOVF   77,W
+00B0:  BSF    03.5
+00B1:  MOVWF  36
+00B2:  MOVF   7A,W
+00B3:  MOVWF  37
+00B4:  MOVLW  02
+00B5:  SUBWF  36,W
+00B6:  BCF    03.5
+00B7:  MOVWF  6B
+00B8:  BSF    03.5
+00B9:  MOVF   37,W
+00BA:  BCF    03.5
+00BB:  MOVWF  6C
+00BC:  MOVLW  00
+00BD:  BTFSS  03.0
+00BE:  MOVLW  01
+00BF:  SUBWF  6C,F
+.................... 	set_timer1( 0 );  
+00C0:  CLRF   0F
+00C1:  CLRF   0E
+.................... 	  
+.................... 	if( !UpdateSpeed )  
+00C2:  BTFSC  68.2
+00C3:  GOTO   0D4
+.................... 	{  
+.................... 		if( SpeedValid )  
+00C4:  BTFSS  68.1
+00C5:  GOTO   0D3
+.................... 		{  
+.................... 			SpeedNull = FALSE;  
+00C6:  BCF    68.0
+.................... 			PERIODE_L = stPeriode.wLow;  
+00C7:  MOVLW  6E
+00C8:  MOVWF  04
+00C9:  INCF   04,F
+00CA:  MOVF   6C,W
+00CB:  MOVWF  00
+00CC:  DECF   04,F
+00CD:  MOVF   6B,W
+00CE:  MOVWF  00
+.................... 			PERIODE_H = stPeriode.bHigh;  
+00CF:  MOVF   6D,W
+00D0:  MOVWF  70
+.................... 			  
+.................... 			SpeedChange = TRUE;  
+00D1:  BSF    68.3
+.................... 		}  
+.................... 		else  
+00D2:  GOTO   0D4
+.................... 			SpeedValid = TRUE;  
+00D3:  BSF    68.1
+.................... 	}  
+.................... 	  
+.................... 	stPeriode.bHigh = 0;  
+00D4:  CLRF   6D
+.................... }  
+....................   
+.................... //-----------------------------------------------------------------------------  
+.................... // Nom : ISR_Timer1()  
+.................... // Desc: Time out de la lecture de fréquence du capteur de vitesse  
+.................... //-----------------------------------------------------------------------------  
+00D5:  BCF    0B.1
+00D6:  BCF    0A.3
+00D7:  BCF    0A.4
+00D8:  GOTO   023
+.................... #int_timer1  
+.................... VOID ISR_Timer1( VOID )  
+.................... {  
+.................... 	if( stPeriode.bHigh >= 64 )  
+00D9:  MOVF   6D,W
+00DA:  SUBLW  3F
+00DB:  BTFSC  03.0
+00DC:  GOTO   0E1
+.................... 	{  
+.................... 		SpeedNull  = TRUE;  
+00DD:  BSF    68.0
+.................... 		SpeedValid = FALSE;  
+00DE:  BCF    68.1
+.................... 		  
+.................... 		SpeedChange = TRUE;  
+00DF:  BSF    68.3
+.................... 	}  
+.................... 	else  
+00E0:  GOTO   0E2
+.................... 		stPeriode.bHigh++;  
+00E1:  INCF   6D,F
+.................... }  
+....................  
+00E2:  BCF    0C.0
+00E3:  BCF    0A.3
+00E4:  BCF    0A.4
+00E5:  GOTO   023
+
+Configuration Fuses:
+   Word  1: 3F3A   HS NOWDT NOPUT NODEBUG NOPROTECT NOBROWNOUT NOLVP NOCPD NOWRT

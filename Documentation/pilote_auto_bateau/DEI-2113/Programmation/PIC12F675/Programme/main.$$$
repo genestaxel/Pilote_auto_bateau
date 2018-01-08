@@ -1,0 +1,418 @@
+ /**   A    1 :V17
+\file main.c  A    2 :
+\brief 		Fichier unique de la carte V-T°-P NMEA183 PIC12F675  A    3 :
+  A    4 :
+\date 	  	Novembre 2004  A    5 :
+\version  	PIC12F675  A    6 :
+\version  	Carte marine V-T°-P NMEA183 PIC12F675  A    7 :
+\version    Compilateur C CCS  A    8 :
+\version 	1.0  A    9 :
+\author		David PROVENT, modifications Vincent AUBINEAU,  Exxotest, Annecy, Haute-Savoie, FRANCE.  A   10 :
+\bug 		Pas de bogues connus pour le moment   A   11 :
+*/  A   12 :
+  A   13 :
+#case  A   14 :
+  A   15 :
+#include <12F675.h> A   16 :
+ //////// Standard Header file for the PIC12F675 device ////////////////  B    1 :I1
+#device PIC12F675  B    2 :
+#nolist  B    3N:X0
+//////// Program memory: 1024x14  Data RAM: 64  Stack: 8  B    4N:
+//////// I/O: 6   Analog Pins: 4  B    5N:
+//////// Data EEPROM: 128  B    6N:
+//////// C Scratch area: 20   ID Location: 2000  B    7N:
+//////// Oscilator Calibration Address: 90  B    8N:
+//////// Fuses: LP,XT,INTRC,HS,NOWDT,WDT,CPD,NOCPD,PROTECT,NOPROTECT,NOMCLR  B    9N:
+//////// Fuses: MCLR,PUT,NOPUT,RC,EC,RC_IO,INTRC_IO,BROWNOUT,NOBROWNOUT  B   10N:
+////////   B   11N:
+////////////////////////////////////////////////////////////////// I/O  B   12N:
+// Discrete I/O Functions: SET_TRIS_x(), OUTPUT_x(), INPUT_x(),  B   13N:
+//                         PORT_B_PULLUPS(), INPUT(),  B   14N:
+//                         OUTPUT_LOW(), OUTPUT_HIGH(),  B   15N:
+//                         OUTPUT_FLOAT(), OUTPUT_BIT()  B   16N:
+// Constants used to identify pins in the above are:  B   17N:
+  B   18N:
+#define PIN_A0  40  B   19N:
+#define PIN_A1  41  B   20N:
+#define PIN_A2  42  B   21N:
+#define PIN_A3  43  B   22N:
+#define PIN_A4  44  B   23N:
+#define PIN_A5  45  B   24N:
+  B   25N:
+////////////////////////////////////////////////////////////////// Useful defines  B   26N:
+#define FALSE 0  B   27N:
+#define TRUE 1  B   28N:
+  B   29N:
+#define BYTE int  B   30N:
+#define BOOLEAN short int  B   31N:
+  B   32N:
+#define getc getch  B   33N:
+#define fgetc getch  B   34N:
+#define getchar getch  B   35N:
+#define putc putchar  B   36N:
+#define fputc putchar  B   37N:
+#define fgets gets  B   38N:
+#define fputs puts  B   39N:
+  B   40N:
+////////////////////////////////////////////////////////////////// Control  B   41N:
+// Control Functions:  RESET_CPU(), SLEEP(), RESTART_CAUSE()  B   42N:
+// Constants returned from RESTART_CAUSE() are:  B   43N:
+#define WDT_FROM_SLEEP  0       B   44N:
+#define WDT_TIMEOUT     8       B   45N:
+#define MCLR_FROM_SLEEP 16      B   46N:
+#define NORMAL_POWER_UP 24      B   47N:
+  B   48N:
+  B   49N:
+////////////////////////////////////////////////////////////////// Timer 0  B   50N:
+// Timer 0 (AKA RTCC)Functions: SETUP_COUNTERS() or SETUP_TIMER0(),  B   51N:
+//                              SET_TIMER0() or SET_RTCC(),  B   52N:
+//                              GET_TIMER0() or GET_RTCC()  B   53N:
+// Constants used for SETUP_TIMER0() are:  B   54N:
+#define RTCC_INTERNAL   0  B   55N:
+#define RTCC_EXT_L_TO_H 32  B   56N:
+#define RTCC_EXT_H_TO_L 48  B   57N:
+  B   58N:
+#define RTCC_DIV_1      8  B   59N:
+#define RTCC_DIV_2      0  B   60N:
+#define RTCC_DIV_4      1  B   61N:
+#define RTCC_DIV_8      2  B   62N:
+#define RTCC_DIV_16     3  B   63N:
+#define RTCC_DIV_32     4  B   64N:
+#define RTCC_DIV_64     5  B   65N:
+#define RTCC_DIV_128    6  B   66N:
+#define RTCC_DIV_256    7  B   67N:
+  B   68N:
+  B   69N:
+#define RTCC_8_BIT      0       B   70N:
+  B   71N:
+// Constants used for SETUP_COUNTERS() are the above  B   72N:
+// constants for the 1st param and the following for  B   73N:
+// the 2nd param:  B   74N:
+  B   75N:
+////////////////////////////////////////////////////////////////// WDT  B   76N:
+// Watch Dog Timer Functions: SETUP_WDT() or SETUP_COUNTERS() (see above)  B   77N:
+//                            RESTART_WDT()  B   78N:
+//  B   79N:
+#define WDT_18MS        8     B   80N:
+#define WDT_36MS        9     B   81N:
+#define WDT_72MS       10     B   82N:
+#define WDT_144MS      11     B   83N:
+#define WDT_288MS      12     B   84N:
+#define WDT_576MS      13     B   85N:
+#define WDT_1152MS     14     B   86N:
+#define WDT_2304MS     15     B   87N:
+  B   88N:
+////////////////////////////////////////////////////////////////// Timer 1  B   89N:
+// Timer 1 Functions: SETUP_TIMER_1, GET_TIMER1, SET_TIMER1  B   90N:
+// Constants used for SETUP_TIMER_1() are:  B   91N:
+//      (or (via |) together constants from each group)  B   92N:
+#define T1_DISABLED         0  B   93N:
+#define T1_INTERNAL         0x85  B   94N:
+#define T1_EXTERNAL         0x87  B   95N:
+#define T1_EXTERNAL_SYNC    0x83  B   96N:
+  B   97N:
+#define T1_CLK_OUT          8  B   98N:
+  B   99N:
+#define T1_DIV_BY_1         0  B  100N:
+#define T1_DIV_BY_2         0x10  B  101N:
+#define T1_DIV_BY_4         0x20  B  102N:
+#define T1_DIV_BY_8         0x30  B  103N:
+  B  104N:
+////////////////////////////////////////////////////////////////// COMP  B  105N:
+// Comparator Variables: C1OUT, C2OUT  B  106N:
+// Constants used in setup_comparators() are:  B  107N:
+#define NC_NC_NC_NC  0x0ff07  B  108N:
+#define NC_NC  0x0ff07  B  109N:
+#define A0_A1  0x3ff02  B  110N:
+#define A1_VR_OUT_ON_A2  0x6fb03  B  111N:
+#define A1_VR  0x2ff04  B  112N:
+#define A0_A1_OUT_ON_A2  0x3fb01  B  113N:
+  B  114N:
+#bit C1OUT = 0x19.6  B  115N:
+  B  116N:
+////////////////////////////////////////////////////////////////// VREF  B  117N:
+// Constants used in setup_vref() are:  B  118N:
+#define VREF_LOW  0xa0  B  119N:
+#define VREF_HIGH 0x80  B  120N:
+#define VREF_A2   0x40  B  121N:
+  B  122N:
+////////////////////////////////////////////////////////////////// ADC  B  123N:
+// ADC Functions: SETUP_ADC(), SETUP_ADC_PORTS() (aka SETUP_PORT_A),  B  124N:
+//                SET_ADC_CHANNEL(), READ_ADC()  B  125N:
+// Constants used in SETUP_ADC_PORTS() are: (These may be ORed together)  B  126N:
+#define NO_ANALOGS             0  B  127N:
+#define ALL_ANALOG             15        //| GP0 GP1 GP2 GP4  B  128N:
+#define AN0_ANALOG             1         //| GP0  B  129N:
+#define AN1_ANALOG             2         //| GP1  B  130N:
+#define AN2_ANALOG             4         //| GP2  B  131N:
+#define AN3_ANALOG             8         //| GP4  B  132N:
+#define VREF                  0x4002  B  133N:
+#define VSS_VDD               0x0000  B  134N:
+#define VSS_VREF              0x4002     //| Range 0-Vref  B  135N:
+// Constants used for SETUP_ADC() are:  B  136N:
+#define ADC_OFF                0     // ADC Off  B  137N:
+#define ADC_CLOCK_DIV_2        1  B  138N:
+#define ADC_CLOCK_DIV_4     0x41  B  139N:
+#define ADC_CLOCK_DIV_8     0x11  B  140N:
+#define ADC_CLOCK_DIV_16    0x51  B  141N:
+#define ADC_CLOCK_DIV_32    0x21  B  142N:
+#define ADC_CLOCK_DIV_64    0x61  B  143N:
+#define ADC_CLOCK_INTERNAL  0x31     // Internal 2-6us  B  144N:
+  B  145N:
+// Constants used in READ_ADC() are:  B  146N:
+#define ADC_START_AND_READ     7   // This is the default if nothing is specified  B  147N:
+#define ADC_START_ONLY         1  B  148N:
+#define ADC_READ_ONLY          6  B  149N:
+  B  150N:
+////////////////////////////////////////////////////////////////// INT  B  151N:
+// Interrupt Functions: ENABLE_INTERRUPTS(), DISABLE_INTERRUPTS(),  B  152N:
+//                      EXT_INT_EDGE()  B  153N:
+//  B  154N:
+// Constants used in EXT_INT_EDGE() are:  B  155N:
+#define L_TO_H              0x40  B  156N:
+#define H_TO_L                 0  B  157N:
+// Constants used in ENABLE/DISABLE_INTERRUPTS() are:  B  158N:
+#define GLOBAL                    0x0BC0  B  159N:
+#define INT_RTCC                  0x0B20  B  160N:
+#define INT_EXT                   0x0B10  B  161N:
+#define INT_AD                    0x8C40  B  162N:
+#define INT_TIMER1                0x8C01  B  163N:
+#define INT_TIMER0                0x0B20  B  164N:
+#define INT_EEPROM                0x8C80  B  165N:
+#define INT_COMP                  0x8C08  B  166N:
+#define INT_RA                    0x0B08  B  167N:
+#define INT_RA0                   0x010B08  B  168N:
+#define INT_RA1                   0x020B08  B  169N:
+#define INT_RA2                   0x040B08  B  170N:
+#define INT_RA3                   0x080B08  B  171N:
+#define INT_RA4                   0x100B08  B  172N:
+#define INT_RA5                   0x200B08  B  173N:
+  B  174N:
+#list  B  175 :X1E
+ B  175 :
+#include "types.h" A   17 :
+   C    1 :I2
+#ifndef __TYPES_H__  C    2 :
+#define __TYPES_H__  C    3 :
+  C    4 :
+#undef VOID  C    5 :
+#undef BOOL  C    6 :
+#undef BYTE  C    7 :
+#undef WORD  C    8 :
+#undef DWORD  C    9 :
+#undef CHAR  C   10 :
+#undef SHORT  C   11 :
+#undef LONG  C   12 :
+#undef FLOAT  C   13 :
+  C   14 :
+#define VOID	void  C   15 :
+#define BOOL	int1  C   16 :
+  C   17 :
+#define BYTE	unsigned int8  C   18 :
+#define WORD	unsigned int16  C   19 :
+#define DWORD	unsigned int32  C   20 :
+  C   21 :
+#define CHAR	signed int8  C   22 :
+#define SHORT	signed int16  C   23 :
+#define LONG	signed int32  C   24 :
+  C   25 :
+#define FLOAT	float  C   26 :
+  C   27 :
+  C   28 :
+#endif // __TYPES_H__  C   29 :E
+ C   29 :
+  A   18 :
+#device ADC=10  A   19 :
+#fuses NOCPD, NOPROTECT  A   20 :
+#fuses NOWDT, NOPUT, BROWNOUT  A   21 :
+#fuses NOMCLR	// RESET  A   22 :
+#fuses INTRC_IO	// Horloge  A   23 :
+#use delay(clock=4000000)  A   24 :V19V21
+#use fast_io(A)  A   25 :
+  A   26 :
+  A   27 :
+// I/O pins  A   28 :
+#define MES_TEMP	PIN_A1    A   29 :
+#define MES_SPEED	PIN_A2  A   30 :
+#define NMEA		PIN_A4  A   31 :
+#define LED			PIN_A5  A   32 :
+  A   33 :
+// Constante en FLASH  A   34 :
+const CHAR strTempStart[]	= "$IIMTW,";  A   35 :V22V23
+const CHAR strTempEnd[]		= ",C\r\n";  A   36 :V25
+const CHAR strSpeedStart[]	= "$IIVHW,,,,,";  A   37 :V27
+const CHAR strSpeedEnd[]	= ",N,,\r\n";  A   38 :V29
+  A   39 :
+#define AN_VALUE_TMP_MAX	223 ///< 40°C  A   40 :
+#define AN_VALUE_TMP_MIN	683 ///< -7°C  A   41 :
+#define VALUE_TMP_MAX	    40  ///< 40°C  A   42 :
+#define VALUE_TMP_MIN	    (-7)  ///< -7°C  A   43 :
+  A   44 :
+#define NUM_TMP		7  A   45 :
+const WORD pwTemp[NUM_TMP] = { AN_VALUE_TMP_MIN, 640, 595, 539, 465, 366, AN_VALUE_TMP_MAX }; ///< Températures en °C, -7, 1, 5, 10, 16, 25, 40      A   46 :V31
+const CHAR pcTemp[NUM_TMP] = { VALUE_TMP_MIN, 1, 5, 10, 16, 25, VALUE_TMP_MAX }; ///< Températures en °C, -7, 1, 5, 10, 16, 25, 40  A   47 :V33
+const WORD pwDeltaTemp[NUM_TMP] = { 0, AN_VALUE_TMP_MIN-640, 640-595, 595-539, 539-465, 465-366, 366-AN_VALUE_TMP_MAX }; ///< Delta de températures  A   48 :V35
+const CHAR pcDeltaTemp[NUM_TMP] = { 0, 1-VALUE_TMP_MIN, 5-1, 10-5, 16-10, 25-16, VALUE_TMP_MAX-25 }; ///< Delta de températures  A   49 :V37
+  A   50 :
+CHAR cTemp;  A   51 :V39
+WORD wTemp;  A   52 :V40
+BOOL SpeedNull;  A   53 :V41
+BOOL SpeedValid;  A   54 :V42
+BOOL UpdateSpeed;  A   55 :V43
+BOOL SpeedChange;  A   56 :V44
+WORD wSpeed;  A   57 :V45
+  A   58 :
+typedef struct {  A   59 :
+	WORD wLow;  A   60 :T46
+	BYTE bHigh;  A   61 :
+} ST_PERIODE;  A   62 :
+ST_PERIODE stPeriode;  A   63 :V50
+  A   64 :
+BYTE bPeriode[4];  A   65 :V51
+#define PERIODE			(*((DWORD*)bPeriode))   ///< Periode sur 32 bits  A   66 :
+#define PERIODE_L		(*((WORD*)bPeriode))	///< Partie basse de la periode  A   67 :
+#define PERIODE_H		(bPeriode[2])			///< Partie haute de la periode  A   68 :
+#define PERIODE_N		(bPeriode[3])			///< Non utilisé, doit être à 0  A   69 :
+  A   70 :
+  A   71 :
+VOID main( VOID )  A   72 :f227
+{  A   73 :{34
+	BYTE i;  A   74 :V53
+  A   75 :
+	// Setup I/O PORTS  A   76 :
+	set_tris_a( 0b11001111 ); // 0 output, 1 input  A   77 :
+	ext_int_edge( L_TO_H ); // INT0 edge  A   78 :
+  A   79 :
+	// Setup Timer  A   80 :
+	setup_timer_1( T1_INTERNAL | T1_DIV_BY_1 );  A   81 :
+	set_timer1( 0 );  A   82 :
+	  A   83 :
+	// Setup ADC  A   84 :
+	setup_adc_ports( AN1_ANALOG ); // A1 (Analog)  A   85 :
+	setup_adc( ADC_CLOCK_INTERNAL );  A   86 :
+	set_adc_channel(1);  A   87 :
+	delay_us(10);  A   88 :
+  A   89 :
+	// Setup RS232  A   90 :
+	#use rs232( BAUD=4800, XMIT=NMEA, PARITY=N, BITS=8 )  A   91 :V56
+  A   92 :
+	enable_interrupts( INT_TIMER1 );        A   93 :
+	enable_interrupts( INT_EXT );  A   94 :
+	enable_interrupts( GLOBAL );  A   95 :
+  A   96 :
+	// Init variable  A   97 :
+	stPeriode.wLow  = 0;  A   98 :
+	stPeriode.bHigh	= 0;  A   99 :
+	SpeedNull		= TRUE;  A  100 :
+	SpeedValid		= FALSE;  A  101 :
+	UpdateSpeed		= FALSE;  A  102 :
+	SpeedChange		= TRUE;  A  103 :
+	PERIODE_N		= 0;  A  104 :
+	  A  105 :
+	output_high( LED );  A  106 :
+	  A  107 :
+	for(;;)  A  108 :
+	{  A  109 :
+		///// TEMPERATURE  A  110 :
+		wTemp = read_adc();  A  111 :{79
+		  A  112 :
+		//printf("$%LX*\n",wTemp);  A  113 :
+	    if( wTemp <= AN_VALUE_TMP_MAX )  A  114 :
+		{  A  115 :
+			cTemp = VALUE_TMP_MAX;  A  116 :{83
+		}  A  117 :}84
+		else   A  118 :
+		{  A  119 :
+    	  if( wTemp >= AN_VALUE_TMP_MIN )  A  120 :{86
+    	  {  A  121 :
+		    cTemp = VALUE_TMP_MIN;  A  122 :{89
+		  }  A  123 :}90
+		  else  A  124 :
+		  {  A  125 :
+			//i = NUM_TMP-1;  A  126 :
+			i = 1;  A  127 :{92
+			while ( wTemp < pwTemp[i])  A  128 :
+			 i++;  A  129 :
+		    cTemp = ( ((pwTemp[i-1] - wTemp) * pcDeltaTemp[i]) / pwDeltaTemp[i] ) + pcTemp[i-1];			  A  130 :V62V63V65V66
+		  }  A  131 :}111
+		}  A  132 :}112
+  A  133 :
+		///// VITESSE  A  134 :
+		if( SpeedChange )  A  135 :
+		{  A  136 :
+			UpdateSpeed = TRUE;  A  137 :{115
+			if( !SpeedNull )  A  138 :
+				wSpeed = 1724138/PERIODE;  A  139 :V68V69
+			else  A  140 :
+				wSpeed = 0;  A  141 :
+			SpeedChange = FALSE;  A  142 :
+			UpdateSpeed = FALSE;  A  143 :
+		}  A  144 :}128
+  A  145 :
+		// Temperature (Water temperature)  A  146 :
+		output_high( LED );  A  147 :
+		printf( strTempStart );  A  148 :
+		printf( "%d", cTemp );  A  149 :V72V73V75V76
+		printf( strTempEnd );  A  150 :
+		output_low( LED );  A  151 :
+		delay_ms(250);  A  152 :
+  A  153 :
+		// Vitesse (Water speed)  A  154 :
+		output_high( LED );  A  155 :
+		printf( strSpeedStart );  A  156 :
+		  A  157 :
+		printf( "%u.%u", (BYTE)(wSpeed/10), (BYTE)(wSpeed%10) );  A  158 :V79V80V82V83
+		printf( strSpeedEnd );  A  159 :
+		output_low( LED );  A  160 :
+		delay_ms(250);  A  161 :
+	}  A  162 :}171
+}  A  163 :}172
+  A  164 :
+  A  165 :
+//-----------------------------------------------------------------------------  A  166 :
+// Nom : ISR_Ext()  A  167 :
+// Desc: Lecture de la fréquence du capteur de vitesse  A  168 :
+//-----------------------------------------------------------------------------  A  169 :
+#int_ext  A  170 :
+VOID ISR_Ext( VOID )  A  171 :f249
+{  A  172 :{174
+	stPeriode.wLow = get_timer1()-2;  A  173 :
+	set_timer1( 0 );  A  174 :
+	  A  175 :
+	if( !UpdateSpeed )  A  176 :
+	{  A  177 :
+		if( SpeedValid )  A  178 :{179
+		{  A  179 :
+			SpeedNull = FALSE;  A  180 :{182
+			PERIODE_L = stPeriode.wLow;  A  181 :
+			PERIODE_H = stPeriode.bHigh;  A  182 :
+			  A  183 :
+			SpeedChange = TRUE;  A  184 :
+		}  A  185 :}183
+		else  A  186 :
+			SpeedValid = TRUE;  A  187 :
+	}  A  188 :}185
+	  A  189 :
+	stPeriode.bHigh = 0;  A  190 :
+}  A  191 :}186
+  A  192 :
+//-----------------------------------------------------------------------------  A  193 :
+// Nom : ISR_Timer1()  A  194 :
+// Desc: Time out de la lecture de fréquence du capteur de vitesse  A  195 :
+//-----------------------------------------------------------------------------  A  196 :
+#int_timer1  A  197 :
+VOID ISR_Timer1( VOID )  A  198 :f250
+{  A  199 :{188
+	if( stPeriode.bHigh >= 64 )  A  200 :
+	{  A  201 :
+		SpeedNull  = TRUE;  A  202 :{192
+		SpeedValid = FALSE;  A  203 :
+		  A  204 :
+		SpeedChange = TRUE;  A  205 :
+	}  A  206 :}193
+	else  A  207 :
+		stPeriode.bHigh++;  A  208 :
+}  A  209 :}195
+  A  210 :E
+ A  210 :
+
